@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>771</width>
+    <width>752</width>
     <height>631</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>GigE Camera Configurator</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QGroupBox" name="cameraInformation">
@@ -19,7 +19,7 @@
      <rect>
       <x>210</x>
       <y>0</y>
-      <width>561</width>
+      <width>541</width>
       <height>571</height>
      </rect>
     </property>
@@ -539,7 +539,7 @@
     <widget class="QGroupBox" name="groupBox_4">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>60</x>
        <y>480</y>
        <width>211</width>
        <height>81</height>
@@ -598,7 +598,7 @@
       <rect>
        <x>10</x>
        <y>260</y>
-       <width>541</width>
+       <width>521</width>
        <height>101</height>
       </rect>
      </property>
@@ -1141,24 +1141,11 @@
        <string>XXX</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="autoForceCurrentIPButton">
-      <property name="geometry">
-       <rect>
-        <x>330</x>
-        <y>31</y>
-        <width>151</width>
-        <height>19</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Automatically Force IP</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="setCurrentIPAddressSubnetButton">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>51</y>
+        <x>350</x>
+        <y>50</y>
         <width>151</width>
         <height>19</height>
        </rect>
@@ -1173,7 +1160,7 @@
       <rect>
        <x>10</x>
        <y>370</y>
-       <width>541</width>
+       <width>521</width>
        <height>101</height>
       </rect>
      </property>
@@ -1716,8 +1703,8 @@
      <widget class="QPushButton" name="copyCurrentIPToPersistentIPButton">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>31</y>
+        <x>350</x>
+        <y>40</y>
         <width>151</width>
         <height>19</height>
        </rect>
@@ -1729,8 +1716,8 @@
      <widget class="QPushButton" name="setPersistentIPAddressSubnetButton">
       <property name="geometry">
        <rect>
-        <x>330</x>
-        <y>51</y>
+        <x>350</x>
+        <y>60</y>
         <width>151</width>
         <height>19</height>
        </rect>
@@ -1743,7 +1730,7 @@
     <widget class="QGroupBox" name="groupBox_5">
      <property name="geometry">
       <rect>
-       <x>230</x>
+       <x>320</x>
        <y>480</y>
        <width>171</width>
        <height>81</height>
@@ -1771,43 +1758,57 @@
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="groupBox_6">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>480</y>
-       <width>141</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>8</pointsize>
-      </font>
-     </property>
-     <property name="title">
-      <string>Connection Test</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-     <widget class="QPushButton" name="testCameraConnectionButton">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>121</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Test Cam. Connect</string>
-      </property>
-     </widget>
-    </widget>
+   </widget>
+   <widget class="QListWidget" name="connectedCamerasList">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>20</y>
+      <width>191</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_24">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>171</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Connected Cameras:</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="refreshButton">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>240</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Refresh</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -1815,7 +1816,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>771</width>
+     <width>752</width>
      <height>20</height>
     </rect>
    </property>

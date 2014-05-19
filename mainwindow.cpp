@@ -8,8 +8,8 @@ const unsigned int DEVICE_MAC_ADDRESS = 8;
 const unsigned int SUPPORTED_IP_CONFIG_ADDRESS = 16;
 const unsigned int CUURENT_IP_CONFIG_ADDRESS = 20;
 const unsigned int CURRENT_IP_ADDRESS = 36;
-const unsigned int CURRENT_GATEWAY_MASK = 68;
-const unsigned int CURRENT_SUBNET_MASK = 52;
+const unsigned int CURRENT_GATEWAY_MASK_ADDRESS = 68;
+const unsigned int CURRENT_SUBNET_MASK_ADDRESS = 52;
 const unsigned int MANUFACTURER_ADDRESS = 72;
 const unsigned int MODEL_ADDRESS = 104;
 const unsigned int DEVICE_VERSION_ADDRESS = 136;
@@ -19,8 +19,8 @@ const unsigned int FIRST_URL_ADDRESS = 512;
 const unsigned int SECOND_URL_ADDRESS = 1024;
 const unsigned int NUM_NETWORK_INTERFACES_ADDRESS = 1536;
 const unsigned int PERSISTENT_IP_ADDRESS = 1612;
-const unsigned int PERSISTENT_GATEWAY_MASK = 1644;
-const unsigned int PERSISTENT_SUBNET_MASK = 1628;
+const unsigned int PERSISTENT_GATEWAY_MASK_ADDRESS = 1644;
+const unsigned int PERSISTENT_SUBNET_MASK_ADDRESS = 1628;
 const unsigned int LINK_SPEED_ADDRESS = 1648;
 const unsigned int NUM_MESSAGE_CHANNELS_ADDRESS = 2304;
 const unsigned int NUM_STREAM_CHANNELS_ADDRESS = 2308;
@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    UpdateCameraList();
 }
 
 MainWindow::~MainWindow()
@@ -48,39 +49,28 @@ MainWindow::~MainWindow()
 
 
 
-void MainWindow::on_autoForceCurrentIPButton_clicked()
-{
-    /* The Gig# Configurator can automatically force an IP address refresh.  This
-     * detects the IP address fo the Network Interface card and automatically sets
-     * the camera's IP address relative to the card.
-     *
-     * The FlyCap2 demo program can be used to test your camera settings and verify
-     * operation.  From the camera selection window, you can also automatically
-     * force an IP address refresh.
-     */
-}
-
 //Sets Current IP Configuration to user entered inputs
 void MainWindow::on_setCurrentIPAddressSubnetButton_clicked()
 {
-    QString ip0 = ui->currentIP0Text->toPlainText(); //least significant
-    QString ip1 = ui->currentIP1Text->toPlainText();
-    QString ip2 = ui->currentIP2Text->toPlainText();
-    QString ip3 = ui->currentIP3Text->toPlainText(); //most significant
-    QString subnet0 = ui->currentSubnet0Text->toPlainText(); //least significant
-    QString subnet1 = ui->currentSubnet1Text->toPlainText();
-    QString subnet2 = ui->currentSubnet2Text->toPlainText();
-    QString subnet3 = ui->currentSubnet3Text->toPlainText(); //most significant
-    if (IsValidIPAddress(ip3, ip2, ip1, ip0)) //check IP Address
+    QHostAddress ipAddress = QHostAddress();
+    QHostAddress subnetAddress = QHostAddress();
+    QString ip = QString("%1.%2.%3.%4").arg(ui->currentIP3Text->toPlainText())
+                                        .arg(ui->currentIP2Text->toPlainText())
+                                        .arg(ui->currentIP1Text->toPlainText())
+                                        .arg(ui->currentIP0Text->toPlainText());
+    QString subnet = QString("%1.%2.%3.%4").arg(ui->currentSubnet3Text->toPlainText())
+                                            .arg(ui->currentSubnet2Text->toPlainText())
+                                            .arg(ui->currentSubnet1Text->toPlainText())
+                                            .arg(ui->currentSubnet0Text->toPlainText());
+    if (ipAddress.setAddress(ip)) //check IP Address
     {
-        if (IsValidIPAddress(subnet3, subnet2, subnet1, subnet0)) //check subnet mask
+        if (subnetAddress.setAddress(subnet)) //check subnet mask
         {
-            ConnectToCamera();
             if (gigeCamera.IsConnected())
             {
-                if (WriteIPToCamera(CURRENT_IP_ADDRESS, ip3, ip2, ip1, ip0) == 0) //write the ip address
+                if (WriteIPToCamera(CURRENT_IP_ADDRESS, ipAddress) == 0) //write the ip address
                 {
-                    WriteIPToCamera(CURRENT_SUBNET_MASK, subnet3, subnet2, subnet1, subnet0); //write the subnet
+                    WriteIPToCamera(CURRENT_SUBNET_MASK_ADDRESS, subnetAddress); //write the subnet
                 }
             }
         }
@@ -90,46 +80,47 @@ void MainWindow::on_setCurrentIPAddressSubnetButton_clicked()
 //Copies Current IP Configuration to Persistent IP Configuration (GUI and in Camera)
 void MainWindow::on_copyCurrentIPToPersistentIPButton_clicked()
 {
-    QString ip0 = ui->currentIP0Text->toPlainText(); //least significant
-    QString ip1 = ui->currentIP1Text->toPlainText();
-    QString ip2 = ui->currentIP2Text->toPlainText();
-    QString ip3 = ui->currentIP3Text->toPlainText(); //most significant
-    QString subnet0 = ui->currentSubnet0Text->toPlainText(); //least significant
-    QString subnet1 = ui->currentSubnet1Text->toPlainText();
-    QString subnet2 = ui->currentSubnet2Text->toPlainText();
-    QString subnet3 = ui->currentSubnet3Text->toPlainText(); //most significant
-    QString gateway0 = ui->currentGateway0Text->toPlainText(); //least significant
-    QString gateway1 = ui->currentGateway1Text->toPlainText();
-    QString gateway2 = ui->currentGateway2Text->toPlainText();
-    QString gateway3 = ui->currentGateway3Text->toPlainText(); //most significant
-    if (IsValidIPAddress(ip3, ip2, ip1, ip0)) //check IP Address
+    QHostAddress ipAddress = QHostAddress();
+    QHostAddress subnetAddress = QHostAddress();
+    QHostAddress gatewayAddress = QHostAddress();
+    QString ip = QString("%1.%2.%3.%4").arg(ui->currentIP3Text->toPlainText())
+                                        .arg(ui->currentIP2Text->toPlainText())
+                                        .arg(ui->currentIP1Text->toPlainText())
+                                        .arg(ui->currentIP0Text->toPlainText());
+    QString subnet = QString("%1.%2.%3.%4").arg(ui->currentSubnet3Text->toPlainText())
+                                            .arg(ui->currentSubnet2Text->toPlainText())
+                                            .arg(ui->currentSubnet1Text->toPlainText())
+                                            .arg(ui->currentSubnet0Text->toPlainText());
+    QString gateway = QString("%1.%2.%3.%4").arg(ui->currentGateway3Text->toPlainText())
+                                             .arg(ui->currentGateway2Text->toPlainText())
+                                             .arg(ui->currentGateway1Text->toPlainText())
+                                             .arg(ui->currentGateway0Text->toPlainText());
+    if (ipAddress.setAddress(ip)) //check IP Address
     {
-        if (IsValidIPAddress(subnet3, subnet2, subnet1, subnet0)) //check subnet mask
+        if (subnetAddress.setAddress(subnet)) //check subnet mask
         {
-            if (IsValidIPAddress(gateway3, gateway2, gateway1, gateway0)) //check default gateway
+            if (gatewayAddress.setAddress(gateway)) //check default gateway
             {
-                ConnectToCamera();
                 if (gigeCamera.IsConnected())
                 {
-                    if (WriteIPToCamera(PERSISTENT_IP_ADDRESS, ip3, ip2, ip1, ip0) == 0) //write IP address
+                    if (WriteIPToCamera(PERSISTENT_IP_ADDRESS, ipAddress) == 0) //write the ip address
                     {
-                        if (WriteIPToCamera(PERSISTENT_SUBNET_MASK, subnet3, subnet2, subnet1, subnet0) == 0) //write Subnet Mask
+                        SetText(ui->persistentIP3Text, ui->currentIP3Text->toPlainText());
+                        SetText(ui->persistentIP2Text, ui->currentIP2Text->toPlainText());
+                        SetText(ui->persistentIP1Text, ui->currentIP1Text->toPlainText());
+                        SetText(ui->persistentIP0Text, ui->currentIP0Text->toPlainText());
+                        if (WriteIPToCamera(PERSISTENT_SUBNET_MASK_ADDRESS, subnetAddress) == 0) //write the subnet
                         {
-                            if (WriteIPToCamera(PERSISTENT_GATEWAY_MASK, gateway3, gateway2, gateway1, gateway0) == 0) //write Default Gateway
+                            SetText(ui->persistentSubnet3Text, ui->currentSubnet3Text->toPlainText());
+                            SetText(ui->persistentSubnet2Text, ui->currentSubnet2Text->toPlainText());
+                            SetText(ui->persistentSubnet1Text, ui->currentSubnet1Text->toPlainText());
+                            SetText(ui->persistentSubnet0Text, ui->currentSubnet0Text->toPlainText());
+                            if (WriteIPToCamera(PERSISTENT_GATEWAY_MASK_ADDRESS, gatewayAddress) == 0) //write the gateway
                             {
-                                //Change values on the gui
-                                SetText(ui->persistentIP0Text, ip0);
-                                SetText(ui->persistentIP1Text, ip1);
-                                SetText(ui->persistentIP2Text, ip2);
-                                SetText(ui->persistentIP3Text, ip3);
-                                SetText(ui->persistentSubnet0Text, subnet0);
-                                SetText(ui->persistentSubnet1Text, subnet1);
-                                SetText(ui->persistentSubnet2Text, subnet2);
-                                SetText(ui->persistentSubnet3Text, subnet3);
-                                SetText(ui->persistentGateway0Text, gateway0);
-                                SetText(ui->persistentGateway1Text, gateway1);
-                                SetText(ui->persistentGateway2Text, gateway2);
-                                SetText(ui->persistentGateway3Text, gateway3);
+                                SetText(ui->persistentGateway3Text, ui->currentGateway3Text->toPlainText());
+                                SetText(ui->persistentGateway2Text, ui->currentGateway2Text->toPlainText());
+                                SetText(ui->persistentGateway1Text, ui->currentGateway1Text->toPlainText());
+                                SetText(ui->persistentGateway0Text, ui->currentGateway0Text->toPlainText());
                             }
                         }
                     }
@@ -142,24 +133,25 @@ void MainWindow::on_copyCurrentIPToPersistentIPButton_clicked()
 //Sets Persistent IP Configuration to user entered inputs
 void MainWindow::on_setPersistentIPAddressSubnetButton_clicked()
 {
-    QString ip0 = ui->persistentIP0Text->toPlainText(); //least significant
-    QString ip1 = ui->persistentIP1Text->toPlainText();
-    QString ip2 = ui->persistentIP2Text->toPlainText();
-    QString ip3 = ui->persistentIP3Text->toPlainText(); //most significant
-    QString subnet0 = ui->persistentSubnet0Text->toPlainText(); //least significant
-    QString subnet1 = ui->persistentSubnet1Text->toPlainText();
-    QString subnet2 = ui->persistentSubnet2Text->toPlainText();
-    QString subnet3 = ui->persistentSubnet3Text->toPlainText(); //most significant
-    if (IsValidIPAddress(ip3, ip2, ip1, ip0)) //check IP Address
+    QHostAddress ipAddress = QHostAddress();
+    QHostAddress subnetAddress = QHostAddress();
+    QString ip = QString("%1.%2.%3.%4").arg(ui->persistentIP3Text->toPlainText())
+                                        .arg(ui->persistentIP2Text->toPlainText())
+                                        .arg(ui->persistentIP1Text->toPlainText())
+                                        .arg(ui->persistentIP0Text->toPlainText());
+    QString subnet = QString("%1.%2.%3.%4").arg(ui->persistentSubnet3Text->toPlainText())
+                                            .arg(ui->persistentSubnet2Text->toPlainText())
+                                            .arg(ui->persistentSubnet1Text->toPlainText())
+                                            .arg(ui->persistentSubnet0Text->toPlainText());
+    if (ipAddress.setAddress(ip)) //check IP Address
     {
-        if (IsValidIPAddress(subnet3, subnet2, subnet1, subnet0)) //check subnet mask
+        if (subnetAddress.setAddress(subnet)) //check subnet mask
         {
-            ConnectToCamera();
             if (gigeCamera.IsConnected())
             {
-                if (WriteIPToCamera(PERSISTENT_IP_ADDRESS, ip3, ip2, ip1, ip0) == 0) //write the ip address
+                if (WriteIPToCamera(PERSISTENT_IP_ADDRESS, ipAddress) == 0) //write the ip address
                 {
-                    WriteIPToCamera(PERSISTENT_SUBNET_MASK, subnet3, subnet2, subnet1, subnet0); //write the subnet
+                    WriteIPToCamera(PERSISTENT_SUBNET_MASK_ADDRESS, subnetAddress); //write the subnet
                 }
             }
         }
@@ -171,7 +163,6 @@ int MainWindow::on_discoverMaxPacketSizeButton_clicked()
 {
     int returnPacket = -1;
     unsigned int packetSize;
-    ConnectToCamera();
     if (gigeCamera.IsConnected())
     {
         FlyCapture2::Error error = gigeCamera.DiscoverGigEPacketSize(&packetSize);
@@ -188,24 +179,114 @@ int MainWindow::on_discoverMaxPacketSizeButton_clicked()
     return returnPacket;
 }
 
-void MainWindow::on_testCameraConnectionButton_clicked()
+//Handles the Refresh button being clicked
+void MainWindow::on_refreshButton_clicked()
 {
+    UpdateCameraList();
+}
 
+//Handles when different camera is selected
+void MainWindow::on_connectedCamerasList_currentRowChanged(int currentRow)
+{
+    if (currentRow >= 0)
+    {
+        SelectCamera(currentRow);
+    }
+    else
+    {
+        ClearAllTextFields();
+    }
 }
 
 
 
 
 //Tries 20 times to connect to the camera
-void MainWindow::ConnectToCamera()
+void MainWindow::ConnectToCamera(unsigned int serialNumber)
 {
     int connectionAttempts = 0;
-    //attempt to connect a maximum of 20 times
-    while (!gigeCamera.IsConnected() && connectionAttempts < 20)
+    FlyCapture2::PGRGuid camGUID;
+    FlyCapture2::Error error = busManager.GetCameraFromSerialNumber(serialNumber, &camGUID); //get GUID of camera with specified serial number
+    if (error.GetType() == FlyCapture2::PGRERROR_OK) //successful GUID retrieval
     {
-        gigeCamera.Connect();
-        connectionAttempts++;
+        do //iterate loop until camera is connected or attempted 20 times
+        {
+            gigeCamera.Connect(&camGUID);
+            connectionAttempts++;
+        } while(!gigeCamera.IsConnected() && connectionAttempts < 20);
+
     }
+}
+
+//Clears all text fields in the gui
+void MainWindow::ClearAllTextFields()
+{
+    SetText(ui->serialNumberText, QString(""));
+    SetText(ui->modelText, QString(""));
+    SetText(ui->vendorText, QString(""));
+    SetText(ui->sensorText, QString(""));
+    SetText(ui->resolutionText, QString(""));
+    SetText(ui->firmwareText, QString(""));
+    SetText(ui->gigEVersionText, QString(""));
+    SetText(ui->userDefinedNameText, QString(""));
+    SetText(ui->xmlURL1Text, QString(""));
+    SetText(ui->xmlURL2Text, QString(""));
+    SetText(ui->macAddressText, QString(""));
+    SetText(ui->currentIP0Text, QString(""));
+    SetText(ui->currentIP1Text, QString(""));
+    SetText(ui->currentIP2Text, QString(""));
+    SetText(ui->currentIP3Text, QString(""));
+    SetText(ui->currentGateway0Text, QString(""));
+    SetText(ui->currentGateway1Text, QString(""));
+    SetText(ui->currentGateway2Text, QString(""));
+    SetText(ui->currentGateway3Text, QString(""));
+    SetText(ui->currentSubnet0Text, QString(""));
+    SetText(ui->currentSubnet1Text, QString(""));
+    SetText(ui->currentSubnet2Text, QString(""));
+    SetText(ui->currentSubnet3Text, QString(""));
+    SetText(ui->persistentIP0Text, QString(""));
+    SetText(ui->persistentIP1Text, QString(""));
+    SetText(ui->persistentIP2Text, QString(""));
+    SetText(ui->persistentIP3Text, QString(""));
+    SetText(ui->persistentGateway0Text, QString(""));
+    SetText(ui->persistentGateway1Text, QString(""));
+    SetText(ui->persistentGateway2Text, QString(""));
+    SetText(ui->persistentGateway3Text, QString(""));
+    SetText(ui->persistentSubnet0Text, QString(""));
+    SetText(ui->persistentSubnet1Text, QString(""));
+    SetText(ui->persistentSubnet2Text, QString(""));
+    SetText(ui->persistentSubnet3Text, QString(""));
+}
+
+//Returns the serial numbers of all connected cameras
+QList<unsigned int> MainWindow::GetConnectedCamerasSerialNumbers()
+{
+    unsigned int currSerialNumber, numCamerasConnected, i;
+    FlyCapture2::Error error;
+    QList<unsigned int> serialNumbers = QList<unsigned int>(); //initiallize empty list of serial numbers
+    numCamerasConnected = GetNumberOfConnectedCameras(); //get number of connected cams
+    for (i = 0; i < numCamerasConnected; i++) //iterate throught each connected camera
+    {
+        error = busManager.GetCameraSerialNumberFromIndex(i, &currSerialNumber); //get serial number of cam
+        if (error.GetType() != FlyCapture2::PGRERROR_OK) //unsuccessful
+        {
+            break;
+        }
+        serialNumbers.append(currSerialNumber); //add serial number found to list
+    }
+    return serialNumbers;
+}
+
+//Returns the number of connected cameras
+unsigned int MainWindow::GetNumberOfConnectedCameras()
+{
+    unsigned int numCamerasConnected;
+    FlyCapture2::Error error = busManager.GetNumOfCameras(&numCamerasConnected);
+    if (error.GetType() != FlyCapture2::PGRERROR_OK)
+    {
+        numCamerasConnected = 0;
+    }
+    return numCamerasConnected;
 }
 
 //Initializes all Text Field Values from what is in the Camera Registers
@@ -216,34 +297,12 @@ void MainWindow::InitializeGUITextFieldValuesFromCamera()
     SetPersistentIPConfigFieldsFromCamera();
 }
 
-//Checks to see if a particular ip address is valid
-//  ipMostSignificant refers to "198" in IP Address "198.166.0.2"
-//  ipSecond refers to "166" in IP Address "198.166.0.2"
-//  ipThird refers to "0" in IP Address "198.166.0.2"
-//  ipLeastSignificant refers to "2" in IP Address "198.166.0.2"
-bool MainWindow::IsValidIPAddress(QString ipMostSignificant, QString ipSecond, QString ipThird, QString ipLeastSignificant)
-{
-    QString ipString = ipMostSignificant;
-    //Form QString representation of IP Address
-    QHostAddress ipAddress = QHostAddress();
-    ipString.append('.');
-    ipString.append(ipSecond);
-    ipString.append('.');
-    ipString.append(ipThird);
-    ipString.append('.');
-    ipString.append(ipLeastSignificant);
-
-    bool success = ipAddress.setAddress(ipString);
-    return success;
-}
-
 //Returns -1 on unsuccessful read, 0 or positive number on successful read
 int MainWindow::ReadFromCameraRegister(unsigned int registerIndex)
 {
     int readValue = -1;     // -1 = unsuccessful read
                             //  0 or positive # = successful read
     unsigned int unsignedRead;
-    ConnectToCamera();
     if (gigeCamera.IsConnected()) //make sure the camera is connect before writing
     {
         FlyCapture2::Error error = gigeCamera.ReadGVCPRegister(registerIndex, &unsignedRead);
@@ -252,8 +311,7 @@ int MainWindow::ReadFromCameraRegister(unsigned int registerIndex)
         //   to see what the difference is.
         if ( error.GetType() != FlyCapture2::PGRERROR_OK ) //If read was unsuccessful
         {
-            char error[512];
-            sprintf( error, "There was an error reading GVCP register %X.", registerIndex);
+            qDebug() << QString("There was an error reading GVCP register %1.").arg(registerIndex);
             readValue = -1;
         }
         else
@@ -264,11 +322,16 @@ int MainWindow::ReadFromCameraRegister(unsigned int registerIndex)
     return readValue;
 }
 
+//Connects to Camera selected in the "Connected Cameras" lists and updates all text fields accordingly
+void MainWindow::SelectCamera(int index)
+{
+    ConnectToCamera(connectedCamerasSerialNumbers.at(index));
+    InitializeGUITextFieldValuesFromCamera();
+}
+
 //Sets all uneditable text fields in "Camera Information"
 void MainWindow::SetCameraInformationFieldsFromCamera()
 {
-    QString firmwareString, gigEString;
-    ConnectToCamera();
     if (gigeCamera.IsConnected())
     {
         FlyCapture2::CameraInfo camInfo;
@@ -276,7 +339,7 @@ void MainWindow::SetCameraInformationFieldsFromCamera()
         if (error.GetType() == FlyCapture2::PGRERROR_OK) //successful at getting camera info
         {
             //set Serial Number text field
-            SetText(ui->serialNumberText, QString((char *) camInfo.serialNumber));
+            SetText(ui->serialNumberText, QString("%1").arg(camInfo.serialNumber));
 
             //set model text field
             SetText(ui->modelText, QString(camInfo.modelName));
@@ -291,16 +354,10 @@ void MainWindow::SetCameraInformationFieldsFromCamera()
             SetText(ui->resolutionText, QString(camInfo.sensorResolution));
 
             //set firmware text field
-            firmwareString = QString(camInfo.firmwareVersion);
-            firmwareString.append("; ");
-            firmwareString.append(QString(camInfo.firmwareBuildTime));
-            SetText(ui->firmwareText, firmwareString);
+            SetText(ui->firmwareText, QString("%1; %2").arg(camInfo.firmwareVersion).arg(camInfo.firmwareBuildTime));
 
             //set GigE Version text field
-            gigEString = QString((char*) camInfo.gigEMajorVersion);
-            gigEString.append(".");
-            gigEString.append(QString((char*) camInfo.gigEMinorVersion));
-            SetText(ui->gigEVersionText, gigEString);
+            SetText(ui->gigEVersionText, QString("%1.%2").arg(camInfo.gigEMajorVersion).arg(camInfo.gigEMinorVersion));
 
             //set User Defined Name text field
             SetText(ui->userDefinedNameText, QString(camInfo.userDefinedName));
@@ -318,42 +375,40 @@ void MainWindow::SetCameraInformationFieldsFromCamera()
 void MainWindow::SetCurrentIPConfigFieldsFromCamera()
 {
     int readVal;
-    ConnectToCamera();
     if (gigeCamera.IsConnected())
     {
         FlyCapture2::CameraInfo camInfo;
         FlyCapture2::Error error = gigeCamera.GetCameraInfo(&camInfo);
+        QHostAddress ipAddress;
+        QStringList ipSegments;
         if (error.GetType() == FlyCapture2::PGRERROR_OK) //successful at getting camera info
         {
             //set Current IP Address
             readVal = ReadFromCameraRegister(CURRENT_IP_ADDRESS);
-            SetText(ui->currentIP3Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_IP_ADDRESS + 4);
-            SetText(ui->currentIP2Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_IP_ADDRESS + 8);
-            SetText(ui->currentIP1Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_IP_ADDRESS + 12);
-            SetText(ui->currentIP0Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
+            ipAddress = QHostAddress((quint32) readVal);
+            ipSegments = ipAddress.toString().split('.');
+            SetText(ui->currentIP3Text, ipSegments.at(0));
+            SetText(ui->currentIP2Text, ipSegments.at(1));
+            SetText(ui->currentIP1Text, ipSegments.at(2));
+            SetText(ui->currentIP0Text, ipSegments.at(3));
 
             //set Current Subnet
-            readVal = ReadFromCameraRegister(CURRENT_SUBNET_MASK);
-            SetText(ui->currentSubnet3Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_SUBNET_MASK + 4);
-            SetText(ui->currentSubnet2Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_SUBNET_MASK + 8);
-            SetText(ui->currentSubnet1Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_SUBNET_MASK + 12);
-            SetText(ui->currentSubnet0Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
+            readVal = ReadFromCameraRegister(CURRENT_SUBNET_MASK_ADDRESS);
+            ipAddress = QHostAddress((quint32) readVal);
+            ipSegments = ipAddress.toString().split('.');
+            SetText(ui->currentSubnet3Text, ipSegments.at(0));
+            SetText(ui->currentSubnet2Text, ipSegments.at(1));
+            SetText(ui->currentSubnet1Text, ipSegments.at(2));
+            SetText(ui->currentSubnet0Text, ipSegments.at(3));
 
             //set Current GateWay
-            readVal = ReadFromCameraRegister(CURRENT_GATEWAY_MASK);
-            SetText(ui->currentGateway3Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_GATEWAY_MASK + 4);
-            SetText(ui->currentGateway2Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_GATEWAY_MASK + 8);
-            SetText(ui->currentGateway1Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(CURRENT_GATEWAY_MASK + 12);
-            SetText(ui->currentGateway0Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
+            readVal = ReadFromCameraRegister(CURRENT_GATEWAY_MASK_ADDRESS);
+            ipAddress = QHostAddress((quint32) readVal);
+            ipSegments = ipAddress.toString().split('.');
+            SetText(ui->currentGateway3Text, ipSegments.at(0));
+            SetText(ui->currentGateway2Text, ipSegments.at(1));
+            SetText(ui->currentGateway1Text, ipSegments.at(2));
+            SetText(ui->currentGateway0Text, ipSegments.at(3));
         }
     }
 }
@@ -362,42 +417,40 @@ void MainWindow::SetCurrentIPConfigFieldsFromCamera()
 void MainWindow::SetPersistentIPConfigFieldsFromCamera()
 {
     int readVal;
-    ConnectToCamera();
     if (gigeCamera.IsConnected())
     {
         FlyCapture2::CameraInfo camInfo;
         FlyCapture2::Error error = gigeCamera.GetCameraInfo(&camInfo);
+        QHostAddress ipAddress;
+        QStringList ipSegments;
         if (error.GetType() == FlyCapture2::PGRERROR_OK) //successful at getting camera info
         {
             //set Current IP Address
             readVal = ReadFromCameraRegister(PERSISTENT_IP_ADDRESS);
-            SetText(ui->persistentIP3Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_IP_ADDRESS + 4);
-            SetText(ui->persistentIP2Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_IP_ADDRESS + 8);
-            SetText(ui->persistentIP1Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_IP_ADDRESS + 12);
-            SetText(ui->persistentIP0Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
+            ipAddress = QHostAddress((quint32) readVal);
+            ipSegments = ipAddress.toString().split('.');
+            SetText(ui->persistentIP3Text, ipSegments.at(0));
+            SetText(ui->persistentIP2Text, ipSegments.at(1));
+            SetText(ui->persistentIP1Text, ipSegments.at(2));
+            SetText(ui->persistentIP0Text, ipSegments.at(3));
 
             //set Current Subnet
-            readVal = ReadFromCameraRegister(PERSISTENT_SUBNET_MASK);
-            SetText(ui->persistentSubnet3Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_SUBNET_MASK + 4);
-            SetText(ui->persistentSubnet2Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_SUBNET_MASK + 8);
-            SetText(ui->persistentSubnet1Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_SUBNET_MASK + 12);
-            SetText(ui->persistentSubnet0Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
+            readVal = ReadFromCameraRegister(PERSISTENT_SUBNET_MASK_ADDRESS);
+            ipAddress = QHostAddress((quint32) readVal);
+            ipSegments = ipAddress.toString().split('.');
+            SetText(ui->persistentSubnet3Text, ipSegments.at(0));
+            SetText(ui->persistentSubnet2Text, ipSegments.at(1));
+            SetText(ui->persistentSubnet1Text, ipSegments.at(2));
+            SetText(ui->persistentSubnet0Text, ipSegments.at(3));
 
             //set Current GateWay
-            readVal = ReadFromCameraRegister(PERSISTENT_GATEWAY_MASK);
-            SetText(ui->persistentGateway3Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_GATEWAY_MASK + 4);
-            SetText(ui->persistentGateway2Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_GATEWAY_MASK + 8);
-            SetText(ui->persistentGateway1Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
-            readVal = ReadFromCameraRegister(PERSISTENT_GATEWAY_MASK + 12);
-            SetText(ui->persistentGateway0Text, QString((char*) ((readVal >= 0) ? readVal : '\0')));
+            readVal = ReadFromCameraRegister(PERSISTENT_GATEWAY_MASK_ADDRESS);
+            ipAddress = QHostAddress((quint32) readVal);
+            ipSegments = ipAddress.toString().split('.');
+            SetText(ui->persistentGateway3Text, ipSegments.at(0));
+            SetText(ui->persistentGateway2Text, ipSegments.at(1));
+            SetText(ui->persistentGateway1Text, ipSegments.at(2));
+            SetText(ui->persistentGateway0Text, ipSegments.at(3));
         }
     }
 }
@@ -409,40 +462,45 @@ void MainWindow::SetText(QPlainTextEdit * textEdit, QString value)
     textEdit->appendPlainText(value);
 }
 
-//Returns "0" if successful write, "-1" if unsuccessful Write
-int MainWindow::WriteIPToCamera(unsigned int registerIndex, QString ipMostSignificant, QString ipSecond, QString ipThird, QString ipLeastSignificant)
+//Checks to see what cameras are connected to the computer and updates the GUI accordingly
+void MainWindow::UpdateCameraList()
 {
-    bool good = true;
-    int writeSuccess = -1;
-    unsigned int ipOne, ipTwo, ipThree, ipFour;
-    ipOne = ipMostSignificant.toUInt(&good, 10); //gets first segment of IP address
-    if (good)
+    int i, existingItems;
+    connectedCamerasSerialNumbers = GetConnectedCamerasSerialNumbers(); //get serial numbers of all connected cameras
+    if (connectedCamerasSerialNumbers.length() > 0) //if there are connected cameras
     {
-        ipTwo = ipSecond.toUInt(&good, 10); //gets second segment of IP address
-        if (good)
+        existingItems = ui->connectedCamerasList->count();
+        for (i = 0; i < existingItems; i++) //remove all cameras from the list (if any exist)
         {
-            ipThree = ipThird.toUInt(&good, 10); //gets third segment of IP address
-            if (good)
-            {
-                ipFour = ipLeastSignificant.toUInt(&good, 10); //gets fourth segment of IP address
-                if (good)
-                {
-                    if (WriteToCameraRegister(registerIndex, ipOne) == 0)
-                    {
-                        if (WriteToCameraRegister((registerIndex + 4), ipTwo) == 0)
-                        {
-                            if (WriteToCameraRegister((registerIndex + 8), ipThree) == 0)
-                            {
-                                if (WriteToCameraRegister((registerIndex + 12), ipFour) == 0)
-                                {
-                                    writeSuccess = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ui->connectedCamerasList->takeItem(ui->connectedCamerasList->count() - 1);
         }
+        for (i = 0; i < connectedCamerasSerialNumbers.length(); i++) //add all cameras to the list
+        {
+            ui->connectedCamerasList->addItem(QString("%1").arg(connectedCamerasSerialNumbers.at(i)));
+        }
+        ui->connectedCamerasList->item(0)->setSelected(true);
+        on_connectedCamerasList_currentRowChanged(0);
+    }
+    else
+    {
+        gigeCamera.Disconnect();
+        existingItems = ui->connectedCamerasList->count();
+        for (i = 0; i < existingItems; i++) //remove all cameras from the list (if any exist)
+        {
+            ui->connectedCamerasList->removeItemWidget(ui->connectedCamerasList->item(ui->connectedCamerasList->count() - 1));
+        }
+        ClearAllTextFields();
+    }
+}
+
+//Returns "0" if successful write, "-1" if unsuccessful Write
+int MainWindow::WriteIPToCamera(unsigned int registerIndex, QHostAddress ipAddress)
+{
+    int writeSuccess = -1;
+    unsigned int ip = ipAddress.toIPv4Address();
+    if (WriteToCameraRegister(registerIndex, ip) == 0)
+    {
+        writeSuccess = 0;
     }
     return writeSuccess;
 }
@@ -453,7 +511,6 @@ int MainWindow::WriteToCameraRegister(unsigned int registerIndex, unsigned int v
     int writeStatus = -2;   // -2 = camera not connected
                             // -1 = camera connected, but unsuccessful write
                             //  0 = successful write
-    ConnectToCamera();
     if (gigeCamera.IsConnected()) //make sure the camera is connect before writing
     {
         FlyCapture2::Error error = gigeCamera.WriteGVCPRegister(registerIndex, valueToRegister, false); //write to camera
@@ -462,8 +519,7 @@ int MainWindow::WriteToCameraRegister(unsigned int registerIndex, unsigned int v
         //   to see what the difference is.
         if ( error.GetType() != FlyCapture2::PGRERROR_OK ) //If the write was unsuccessful
         {
-            char error[512];
-            sprintf( error, "There was an error writing GVCP register %X with the value %X.", registerIndex, valueToRegister );
+            qDebug() << QString("There was an error writing GVCP register %1 with the value %2.").arg(registerIndex).arg(valueToRegister);
             writeStatus = -1; //unsuccessful Write
         }
         else
@@ -473,6 +529,7 @@ int MainWindow::WriteToCameraRegister(unsigned int registerIndex, unsigned int v
     }
     return writeStatus;
 }
+
 
 
 

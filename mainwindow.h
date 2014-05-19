@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QStringList>
 #include <QIdentityProxyModel>
 #include <QtNetwork/QHostAddress>
 #include <QPlainTextEdit>
@@ -19,10 +20,12 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    QList<unsigned int> GetConnectedCamerasSerialNumbers();
+
+    unsigned int GetNumberOfConnectedCameras();
+
 private slots:
 
-
-    void on_autoForceCurrentIPButton_clicked();
 
     void on_setCurrentIPAddressSubnetButton_clicked();
 
@@ -32,19 +35,27 @@ private slots:
 
     int on_discoverMaxPacketSizeButton_clicked();
 
-    void on_testCameraConnectionButton_clicked();
+    void on_refreshButton_clicked();
+
+    void on_connectedCamerasList_currentRowChanged(int currentRow);
 
 private:
     Ui::MainWindow *ui;
+    FlyCapture2::BusManager busManager;
     FlyCapture2::GigECamera gigeCamera;
+    QList<unsigned int> connectedCamerasSerialNumbers;
 
-    void ConnectToCamera();
+    void ConnectToCamera(unsigned int serialNumber);
+
+    void ClearAllTextFields();
 
     void InitializeGUITextFieldValuesFromCamera();
 
-    bool IsValidIPAddress(QString ipMostSignificant, QString ipSecond, QString ipThird, QString ipLeastSignificant);
+    bool IsValidIPAddress(int ip);
 
     int ReadFromCameraRegister(unsigned int registerIndex);
+
+    void SelectCamera(int index);
 
     void SetCameraInformationFieldsFromCamera();
 
@@ -54,7 +65,9 @@ private:
 
     void SetText(QPlainTextEdit * textEdit, QString value);
 
-    int WriteIPToCamera(unsigned int registerIndex, QString ipMostSignificant, QString ipSecond, QString ipThird, QString ipLeastSignificant);
+    void UpdateCameraList();
+
+    int WriteIPToCamera(unsigned int registerIndex, QHostAddress ipAddress);
 
     int WriteToCameraRegister(unsigned int registerIndex, unsigned int valueToRegister);
 
