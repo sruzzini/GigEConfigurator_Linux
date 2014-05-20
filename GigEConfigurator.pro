@@ -20,9 +20,9 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-unix:!macx: LIBS += -L$$PWD/../../../../usr/lib/ -lflycapture
-unix:!macx: INCLUDEPATH += $$PWD/../../../../usr/include/flycapture
-unix:!macx: DEPENDPATH += $$PWD/../../../../usr/include/flycapture
+unix:!macx: LIBS += -I/usr/lib/ -lflycapture
+unix:!macx: INCLUDEPATH += /usr/include/flycapture
+unix:!macx: DEPENDPATH += /usr/include/flycapture
 
 win32: INCLUDEPATH += "C:\Program Files\Point Grey Research\FlyCapture2\include"
 win32: LIBS += -L"C:\Program Files\Point Grey Research\FlyCapture2\lib64" -lFlyCapture2
